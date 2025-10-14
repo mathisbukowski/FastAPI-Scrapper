@@ -10,6 +10,21 @@ A FastAPI-based web scraping application.
 
 ### Installation
 
+#### Quick Setup (Linux/macOS)
+
+1. Clone the repository:
+```bash
+git clone https://github.com/mathisbukowski/FastAPI-Scrapper.git
+cd FastAPI-Scrapper
+```
+
+2. Run the setup script:
+```bash
+./setup.sh
+```
+
+#### Manual Setup
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/mathisbukowski/FastAPI-Scrapper.git
