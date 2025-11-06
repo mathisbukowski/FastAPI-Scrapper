@@ -23,6 +23,37 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
+      - name: Remove previous GHCR image tagged 'latest'
+        env:
+          OWNER: ${{ secrets.REGISTRY_USERNAME }}
+          TOKEN: ${{ secrets.REGISTRY_PASSWORD }}
+          PACKAGE: fastapi-scrapper
+        run: |
+          set -euo pipefail
+          echo "Searching for package versions tagged 'latest' for $OWNER/$PACKAGE..."
+          # List package versions for the user namespace
+          VERSIONS=$(curl -sSf -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $TOKEN" "https://api.github.com/users/$OWNER/packages/container/$PACKAGE/versions?per_page=100")
+          IDS=$(echo "$VERSIONS" | python3 - <<'PY'
+          import sys, json
+          j = json.load(sys.stdin)
+          ids = []
+          for v in j:
+              tags = v.get('metadata', {}).get('container', {}).get('tags', [])
+              if 'latest' in tags:
+                  ids.append(str(v.get('id')))
+          print(" ".join(ids))
+          PY
+          )
+          if [ -z "$IDS" ]; then
+            echo "No 'latest' versions found."
+            exit 0
+          fi
+          for id in $IDS; do
+            echo "Deleting package version $id..."
+            curl -sSf -X DELETE -H "Authorization: Bearer $TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/user/packages/container/$PACKAGE/versions/$id"
+            echo "Deleted $id"
+          done
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
