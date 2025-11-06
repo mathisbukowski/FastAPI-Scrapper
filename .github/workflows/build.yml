@@ -24,13 +24,12 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Remove previous GHCR image tagged 'latest'
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
         run: |
-          docker rmi ghcr.io/${{ secrets.REGISTRY_USERNAME }}/fastapi-scrapper:latest || echo "No previous image to remove"
+          echo "Attempting to delete previous 'latest' image from registry..."
+          # Pull and remove the old image to free up space before pushing new one
+          docker pull ghcr.io/${{ secrets.REGISTRY_USERNAME }}/fastapi-scrapper:latest 2>/dev/null || echo "No previous image found in registry"
+          docker rmi ghcr.io/${{ secrets.REGISTRY_USERNAME }}/fastapi-scrapper:latest 2>/dev/null || echo "No local image to remove"
+          echo "Ready to build and push new image"
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
