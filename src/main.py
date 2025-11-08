@@ -1,35 +1,29 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import text 
-from .database import database
+from fastapi import FastAPI
 
-app = FastAPI(title="FastAPI Scrapper", version="1.0.0")
+from .core.config import settings
+from .graphql_app.router import graphql_router
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION
+)
+
+app.include_router(graphql_router, prefix="/graphql")
 
 
 @app.get("/")
 async def root():
     """Root endpoint returning a welcome message."""
-    return {"message": "Welcome to FastAPI Scrapper"}
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {"status": "healthy"}
-    
-@app.get("/health/db")
-async def health_db_check(db: Session = Depends(database.get_db)):
-  try: 
-    db.execute(text("SELECT 1"))
-    
-    return {"status": "ok", "message": "Database connection is active."}
-  except Exception as e:
-    raise HTTPException(
-        status_code=500,
-        detail=f"Database connection fail: {str(e)}"
-    )
+    return {
+        "message": f"Welcome to {settings.APP_NAME}",
+        "graphql": "/graphql"
+    }
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app,
+        host=settings.HOST,
+        port=int(settings.PORT)
+    )
