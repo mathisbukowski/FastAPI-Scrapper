@@ -4,4 +4,4 @@ pydantic==2.9.2
 pydantic-settings==2.5.2
 sqlalchemy==2.0.35
 psycopg2-binary==2.9.10
-strawberry-graphql[fastapi]==0.243.2
+strawberry-graphql[fastapi]==0.244.0
