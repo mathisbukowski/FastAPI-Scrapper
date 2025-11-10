@@ -1,9 +1,14 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+import logging
+import os
+from pathlib import Path
 
 from .core.config import settings
 from .core.database import Base, engine
-from . import models
+from alembic import command
+from alembic.config import Config as AlembicConfig
+from . import models  # noqa: F401 ensures models imported
 from .graphql.router import graphql_router
 
 
@@ -15,7 +20,19 @@ async def lifespan(app: FastAPI):
     then creates missing tables.
     """
 
-    Base.metadata.create_all(bind=engine)
+    logger = logging.getLogger("startup")
+    logger.info("Starting application lifespan: applying migrations")
+    try:
+        project_root = Path(__file__).resolve().parent.parent
+        alembic_cfg = AlembicConfig(str(project_root / "alembic.ini"))
+        os.environ.setdefault("DATABASE_URL", settings.database_url)
+        logger.info("Running Alembic upgrade head...")
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Alembic upgrade completed.")
+    except Exception as exc:
+        logger.error(f"Alembic upgrade failed: {exc}. Falling back to create_all().")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Fallback create_all complete.")
     yield
 
 

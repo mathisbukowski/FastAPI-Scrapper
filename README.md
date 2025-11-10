@@ -1,6 +1,6 @@
 # FastAPI-Scrapper
 
-A FastAPI-based web application with GraphQL (Strawberry) exposing user and item management.
+FastAPI app with GraphQL (Strawberry) exposing user and item management. Database schema managed by Alembic migrations at startup.
 
 ## Setup
 
@@ -81,6 +81,33 @@ Or use uvicorn directly:
 ```bash
 uvicorn main:app --reload
 ```
+
+### Database Migrations (Alembic)
+
+Alembic is configured and runs automatically on startup (`upgrade head`).
+If you prefer manual control:
+
+Generate a new revision (autogenerate based on model changes):
+```bash
+alembic revision --autogenerate -m "add new column"
+```
+
+Apply migrations:
+```bash
+alembic upgrade head
+```
+
+Rollback one step:
+```bash
+alembic downgrade -1
+```
+
+Show current head:
+```bash
+alembic current
+```
+
+Because the app runs `upgrade head` during startup, ensure your migrations are committed before deploying.
 
 The API will be available at:
 
