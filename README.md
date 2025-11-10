@@ -1,6 +1,6 @@
 # FastAPI-Scrapper
 
-A FastAPI-based web scraping application.
+A FastAPI-based web application with GraphQL (Strawberry) exposing user and item management.
 
 ## Setup
 
@@ -53,6 +53,23 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+### Environment Variables
+
+Create a `.env` file at the project root (or export variables) with at least:
+
+```
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=fastapi_scrapper
+HOST=0.0.0.0
+PORT=8000
+APP_NAME=FastAPI-Scrapper
+APP_VERSION=0.1.0
+```
+
+Ensure a PostgreSQL instance is running matching those credentials.
+
 ### Running the Application
 
 Start the FastAPI server:
@@ -66,14 +83,63 @@ uvicorn main:app --reload
 ```
 
 The API will be available at:
+
 - Main application: http://localhost:8000
+- GraphQL endpoint: http://localhost:8000/graphql
 - Interactive API docs (Swagger UI): http://localhost:8000/docs
 - Alternative API docs (ReDoc): http://localhost:8000/redoc
 
-## API Endpoints
+### GraphQL Usage
+
+Example queries and mutations (use a GraphQL client or the Strawberry built-in interface at `/graphql`):
+
+Query all users:
+```graphql
+query {
+	users { id username email created_at }
+}
+```
+
+Create a user:
+```graphql
+mutation {
+	create_user(email: "john@example.com", username: "john") { id username }
+}
+```
+
+Create an item for a user:
+```graphql
+mutation {
+	create_item(user_id: 1, name: "Mon Item") { id name user_id }
+}
+```
+
+List items for a user:
+```graphql
+query {
+	items(user_id: 1) { id name created_at user_id }
+}
+```
+
+Get user with nested items:
+```graphql
+query {
+	user(user_id: 1) { id username items { id name } }
+}
+```
+
+Delete an item:
+```graphql
+mutation {
+	delete_item(item_id: 5)
+}
+```
+
+## API Endpoints (REST)
 
 - `GET /` - Welcome message
-- `GET /health` - Health check endpoint
+
+GraphQL operations replace dedicated REST endpoints for users/items in this project.
 
 ## Development
 
